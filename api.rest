@@ -1,0 +1,320 @@
+### ============================================================
+### Workout Logger API - REST Client Tests
+### Install "REST Client" extension in VS Code to run these
+### Set @baseUrl and @token variables before running
+### ============================================================
+
+@baseUrl = http://localhost:5000/api
+@token = PASTE_YOUR_JWT_TOKEN_HERE
+
+### ============================================================
+### HEALTH CHECK
+### ============================================================
+
+### Health Check
+GET {{baseUrl}}/health
+
+### ============================================================
+### AUTH SERVICE
+### ============================================================
+
+### Register a new user
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "saif_test",
+  "email": "saif@test.com",
+  "password": "password123"
+}
+
+###
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "saif@test.com",
+  "password": "password123"
+}
+
+###
+
+### Get current user profile (Protected)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+### ============================================================
+### EXERCISE MANAGEMENT SERVICE (Eyad)
+### ============================================================
+
+### Get all exercises
+GET {{baseUrl}}/exercises
+Authorization: Bearer {{token}}
+
+###
+
+### Get exercises with search filter
+GET {{baseUrl}}/exercises?search=bench&page=1&limit=10
+Authorization: Bearer {{token}}
+
+###
+
+### Get exercises by muscle group via query param
+GET {{baseUrl}}/exercises?muscleGroup=chest
+Authorization: Bearer {{token}}
+
+###
+
+### Get exercises by muscle group (dedicated route)
+GET {{baseUrl}}/exercises/muscle/legs
+Authorization: Bearer {{token}}
+
+###
+
+### Create a custom exercise
+# @name createExercise
+POST {{baseUrl}}/exercises
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Barbell Squat",
+  "muscleGroup": "legs",
+  "description": "A compound lower-body exercise targeting the quads, hamstrings, and glutes."
+}
+
+###
+
+### Get single exercise by ID
+GET {{baseUrl}}/exercises/REPLACE_WITH_EXERCISE_ID
+Authorization: Bearer {{token}}
+
+###
+
+### Update an exercise
+PUT {{baseUrl}}/exercises/REPLACE_WITH_EXERCISE_ID
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "description": "Updated: A compound lower-body exercise. Keep back straight throughout."
+}
+
+###
+
+### Delete an exercise
+DELETE {{baseUrl}}/exercises/REPLACE_WITH_EXERCISE_ID
+Authorization: Bearer {{token}}
+
+###
+
+### Search ExerciseDB (external API) and auto-import
+GET {{baseUrl}}/exercises/external/search?name=bench+press
+Authorization: Bearer {{token}}
+
+###
+
+### Import exercises by body part from ExerciseDB
+POST {{baseUrl}}/exercises/external/import/chest
+Authorization: Bearer {{token}}
+
+### ============================================================
+### WORKOUT SESSION LOG SERVICE (Fares)
+### ============================================================
+
+### Get all sessions for the logged-in user
+GET {{baseUrl}}/sessions
+Authorization: Bearer {{token}}
+
+###
+
+### Get sessions with date filter
+GET {{baseUrl}}/sessions?startDate=2024-01-01&endDate=2024-12-31&page=1&limit=5
+Authorization: Bearer {{token}}
+
+###
+
+### Get workout history (last 20 sessions)
+GET {{baseUrl}}/sessions/history?limit=20
+Authorization: Bearer {{token}}
+
+###
+
+### Log a new workout session
+# @name createSession
+POST {{baseUrl}}/sessions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Leg Day",
+  "date": "2025-04-20T10:00:00.000Z",
+  "exercises": [
+    {
+      "exerciseId": "REPLACE_WITH_EXERCISE_ID",
+      "sets": 4,
+      "reps": 8,
+      "weight": 100
+    },
+    {
+      "exerciseId": "REPLACE_WITH_EXERCISE_ID_2",
+      "sets": 3,
+      "reps": 12,
+      "weight": 60
+    }
+  ]
+}
+
+###
+
+### Get a single session by ID
+GET {{baseUrl}}/sessions/REPLACE_WITH_SESSION_ID
+Authorization: Bearer {{token}}
+
+###
+
+### Update a session
+PUT {{baseUrl}}/sessions/REPLACE_WITH_SESSION_ID
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Leg Day - Updated",
+  "exercises": [
+    {
+      "exerciseId": "REPLACE_WITH_EXERCISE_ID",
+      "sets": 5,
+      "reps": 5,
+      "weight": 120
+    }
+  ]
+}
+
+###
+
+### Delete a session
+DELETE {{baseUrl}}/sessions/REPLACE_WITH_SESSION_ID
+Authorization: Bearer {{token}}
+
+### ============================================================
+### WORKOUT NOTES SERVICE (Saif)
+### ============================================================
+
+### Get all notes for a session
+GET {{baseUrl}}/notes/session/REPLACE_WITH_SESSION_ID
+Authorization: Bearer {{token}}
+
+###
+
+### Add a note to a session
+# @name createNote
+POST {{baseUrl}}/notes/session/REPLACE_WITH_SESSION_ID
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "content": "Felt strong today. Squats were smooth at 100kg. Need to work on depth."
+}
+
+###
+
+### Get a single note by ID
+GET {{baseUrl}}/notes/REPLACE_WITH_NOTE_ID
+Authorization: Bearer {{token}}
+
+###
+
+### Update a note
+PUT {{baseUrl}}/notes/REPLACE_WITH_NOTE_ID
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "content": "Updated: Felt strong. Squats at 100kg. Good depth today. Increase weight next session."
+}
+
+###
+
+### Delete a note
+DELETE {{baseUrl}}/notes/REPLACE_WITH_NOTE_ID
+Authorization: Bearer {{token}}
+
+### ============================================================
+### PROGRESS & ANALYTICS SERVICE (Nemr)
+### ============================================================
+
+### Dashboard summary
+GET {{baseUrl}}/analytics/dashboard
+Authorization: Bearer {{token}}
+
+###
+
+### Weekly training volume (last 8 weeks)
+GET {{baseUrl}}/analytics/volume/weekly?weeks=8
+Authorization: Bearer {{token}}
+
+###
+
+### Personal bests (max weight per exercise)
+GET {{baseUrl}}/analytics/personal-bests
+Authorization: Bearer {{token}}
+
+###
+
+### Muscle group training frequency (last 30 days)
+GET {{baseUrl}}/analytics/frequency?days=30
+Authorization: Bearer {{token}}
+
+###
+
+### Progress over time for a specific exercise
+GET {{baseUrl}}/analytics/progress/REPLACE_WITH_EXERCISE_ID
+Authorization: Bearer {{token}}
+
+### ============================================================
+### VALIDATION ERROR TESTS
+### ============================================================
+
+### Register with missing fields (should return 400)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "x",
+  "email": "not-an-email",
+  "password": "123"
+}
+
+###
+
+### Create exercise with invalid muscle group (should return 400)
+POST {{baseUrl}}/exercises
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Test",
+  "muscleGroup": "invalid_group"
+}
+
+###
+
+### Log session with invalid exerciseId (should return 400)
+POST {{baseUrl}}/sessions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Test Session",
+  "exercises": [
+    {
+      "exerciseId": "not-a-valid-id",
+      "sets": 3,
+      "reps": 10,
+      "weight": 50
+    }
+  ]
+}
