@@ -1,0 +1,63 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy container app to Azure Web App - workout-logger-api
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read #This is required for actions/checkout
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to container registry
+        uses: docker/login-action@v2
+        with:
+          registry: workoutregistry.azurecr.io/
+          username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_0E2934E836DD4BBAB12E39D8BCFA2AC0 }}
+          password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD_A1F52357AD544580950408409F117094 }}
+
+      - name: Build and push container image to registry
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: workoutregistry.azurecr.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_0E2934E836DD4BBAB12E39D8BCFA2AC0 }}/workout-logger-backend:${{ github.sha }}
+          file: ./Dockerfile
+
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
+    needs: build
+    
+    steps:
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_DA99A1E1B35F4CFAA4CE8BFF1EDD6F8C }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B0726DF741E84833A40AC5B338A96057 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D11C1C6050844BA38748432A662721E0 }}
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'workout-logger-api'
+          slot-name: 'Production'
+          images: 'workoutregistry.azurecr.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_0E2934E836DD4BBAB12E39D8BCFA2AC0 }}/workout-logger-backend:${{ github.sha }}'
+          
