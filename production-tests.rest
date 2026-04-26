@@ -1,0 +1,125 @@
+### ============================================================
+### PRODUCTION REST API TESTS (Live Azure Environment)
+### ============================================================
+
+# Live Azure Backend URL
+@baseUrl = https://workout-logger-api-gce5erdshpb7c3gs.uaenorth-01.azurewebsites.net/api
+
+### ============================================================
+### 1. AUTHENTICATION
+### ============================================================
+
+### 1a. Register a new user
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "ProfTest",
+  "email": "professor@test.com",
+  "password": "password123"
+}
+
+### 1b. Login (run this first to get a token for the other routes)
+# @name loginRequest
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "professor@test.com",
+  "password": "password123"
+}
+
+### Auto-Extract Token Variable (Do not click this, it happens automatically)
+@token = {{loginRequest.response.body.data.token}}
+
+### 1c. Get User Profile (Tests if the auto-token worked)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+
+### ============================================================
+### 2. EXERCISE MANAGEMENT (Eyad)
+### ============================================================
+
+### 2a. Create a Custom Exercise
+POST {{baseUrl}}/exercises
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Dumbbell Hammer Curls",
+  "muscleGroup": "arms",
+  "description": "Bicep isolation exercise."
+}
+
+### 2b. Get All Exercises
+GET {{baseUrl}}/exercises
+Authorization: Bearer {{token}}
+
+### 2c. Import Exercises from External API (ExerciseDB)
+GET {{baseUrl}}/exercises/external/search?name=squat
+Authorization: Bearer {{token}}
+
+
+### ============================================================
+### 3. WORKOUT SESSION LOG (Fares)
+### ============================================================
+
+### 3a. Log a Workout Session
+# (Requires a valid exerciseId from the 'Get All Exercises' request)
+POST {{baseUrl}}/sessions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Upper Body Day",
+  "date": "2024-05-01T10:00:00.000Z",
+  "exercises": [
+    {
+      "exerciseId": "651a2b3c4d5e6f7a8b9c0d1e", 
+      "sets": 3,
+      "reps": 10,
+      "weight": 25
+    }
+  ]
+}
+
+### 3b. Get All Sessions
+GET {{baseUrl}}/sessions
+Authorization: Bearer {{token}}
+
+
+### ============================================================
+### 4. WORKOUT NOTES (Saif)
+### ============================================================
+
+### 4a. Add a Note to a Session (Includes Profanity Filter API Test)
+# (Requires a valid sessionId from 'Get All Sessions' request)
+POST {{baseUrl}}/notes/session/651a2b3c4d5e6f7a8b9c0d1e
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "content": "This workout was incredibly hard. The squats were bullshit but I pushed through."
+}
+
+### 4b. Get Notes for a Session
+GET {{baseUrl}}/notes/session/651a2b3c4d5e6f7a8b9c0d1e
+Authorization: Bearer {{token}}
+
+
+### ============================================================
+### 5. PROGRESS & ANALYTICS (Abdelrahman)
+### ============================================================
+
+### 5a. Get Dashboard Summary
+GET {{baseUrl}}/analytics/dashboard
+Authorization: Bearer {{token}}
+
+### 5b. Get Weekly Volume Data
+GET {{baseUrl}}/analytics/volume/weekly
+Authorization: Bearer {{token}}
+
+### 5c. Get Muscle Group Frequency
+GET {{baseUrl}}/analytics/frequency?days=30
+Authorization: Bearer {{token}}
